@@ -75,6 +75,8 @@ Sandbox edits feed the same calculations. The local benchmark reuses the same fu
 
 ## Presentation and demo assets
 
+- [Prism use case](docs/Prism-Use-Case.docx).
+
 - [Three introductory slides](docs/Prism-Introduction.pptx).
 - [Importable campaign dataset](data/campaign-test.csv).
 
