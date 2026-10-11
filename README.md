@@ -75,13 +75,8 @@ Sandbox edits feed the same calculations. The local benchmark reuses the same fu
 
 ## Presentation and demo assets
 
-- [Three introductory slides](docs/Prism-Introduction.pptx), with speaker notes.
-- [Slide narration](docs/Prism-Slide-Narration.txt).
+- [Three introductory slides](docs/Prism-Introduction.pptx).
 - [Importable campaign dataset](data/campaign-test.csv).
-
-Start the demo in Investigation and import the supplied CSV. Expected rates are 20% before and 45.6% after. Every segment improved is contradicted; overall conversion increased is supported; the causal claim needs review.
-
-Then open Sandbox and change after-period conversions to 30 for new customers and 520 for returning customers. Investigate Every segment improved again: it is now supported. Finish in Evaluation lab with Run local benchmark.
 
 ## Development
 
