@@ -1,0 +1,5 @@
+period,segment,visitors,conversions
+before,New customers,800,80
+before,Returning customers,200,120
+after,New customers,200,16
+after,Returning customers,800,440

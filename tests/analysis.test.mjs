@@ -1,0 +1,16 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { analyze, decide, naive, parseCSV, toCSV, scenarios, benchmark, validateRows } from '../lib/analysis.ts';
+const close=(a,b)=>assert.ok(Math.abs(a-b)<1e-8,`${a} should equal ${b}`);
+test('weighted headline reveals Simpson reversal without averaging segment percentages',()=>{const e=analyze(scenarios[0].rows);close(e.before.rate,20);close(e.after.rate,45.6);close(e.delta,25.6);close(e.standardized,17.4);close(e.adjustedDelta,-2.6);assert.equal(e.reversal,true);close(e.mixShift,60);});
+test('the same dataset supports aggregate growth but contradicts universal segment growth',()=>{const e=analyze(scenarios[0].rows);assert.equal(decide(e,'aggregate'),'supported');assert.equal(decide(e,'segments'),'contradicted');assert.equal(decide(e,'causal'),'needs_review');});
+test('complete genuine growth is supported in every segment',()=>{const e=analyze(scenarios[1].rows);close(e.after.rate,22.6);assert.equal(e.reversal,false);assert.equal(decide(e,'segments'),'supported');});
+test('zero denominator produces null rates and review, never infinity',()=>{const rows=scenarios[0].rows.map(r=>({...r,visitors:0,conversions:0}));const e=analyze(rows);assert.equal(e.delta,null);assert.equal(e.standardized,null);assert.equal(decide(e,'aggregate'),'needs_review');});
+test('missing segment in one period is reviewed',()=>{const e=analyze(scenarios[0].rows.slice(0,3));assert.equal(e.complete,false);assert.equal(decide(e,'segments'),'needs_review');});
+test('sparse data applies documented conservative policy',()=>assert.equal(decide(analyze(scenarios[3].rows),'aggregate'),'needs_review'));
+test('CSV handles quotes, commas, BOM, CRLF and header order',()=>{const csv='\uFEFFsegment,conversions,period,visitors\r\n"New, \"\"VIP\"\"",10,before,100\r\n"New, \"\"VIP\"\"",20,after,100';const rows=parseCSV(csv);assert.equal(rows[0].segment,'New, "VIP"');assert.equal(analyze(rows).delta,10);assert.deepEqual(parseCSV(toCSV(rows)),rows);});
+test('CSV rejects empty numeric values instead of silently treating them as zero',()=>assert.throws(()=>parseCSV('period,segment,visitors,conversions\nbefore,A,,0\nafter,A,2,1')));
+test('CSV rejects unmatched quotes',()=>assert.throws(()=>parseCSV('period,segment,visitors,conversions\nbefore,"A,1,1')));
+test('invalid and duplicate data rejected',()=>{assert.throws(()=>validateRows([{period:'before',segment:'A',visitors:10,conversions:11}]));assert.throws(()=>validateRows([...scenarios[0].rows,scenarios[0].rows[0]]));assert.throws(()=>validateRows([{period:'before',segment:'A',visitors:-1,conversions:0}]));});
+test('unchanged rate is not an increase',()=>{const rows=[{period:'before',segment:'A',visitors:100,conversions:20},{period:'after',segment:'A',visitors:200,conversions:40}];assert.equal(decide(analyze(rows),'aggregate'),'contradicted');});
+test('fixed reference benchmark distinguishes baseline and contextual rules',()=>{assert.equal(benchmark.filter(t=>naive(analyze(t.rows))===t.expected).length,5);assert.equal(benchmark.filter(t=>decide(analyze(t.rows),t.claim)===t.expected).length,12);});
